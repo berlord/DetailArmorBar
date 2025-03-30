@@ -245,41 +245,38 @@ public class ArmorBarRenderer {
         var screenHeight = client.getWindow().getScaledHeight() - 39;
         var yPos = screenHeight - (healthRow - 1) * Math.max(10 - (healthRow - 2), 3) - 10;
 
-        int stackCount = (totalArmorPoint - 1) / 20;
-        int stackRow = stackCount * 20;
-
         RenderSystem.enableBlend();
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
+
+        int stackCount = (totalArmorPoint - 1) / 20;
 
         //Default
         if (totalArmorPoint > 0) {
 
-            for (int count = 0; count < 10; count++) {
-                int xPos = screenWidth + count * 8;
+            for (int stackIndex = 0; stackIndex < stackCount + 1; stackIndex++) {
+                for (int armorIndex = 0; armorIndex < 10; armorIndex++) {
+                    int xPos = screenWidth + armorIndex * 8;
+                    int yPos2 = yPos - stackIndex * 10;
+                    int index = stackIndex * 20 + armorIndex * 2;
 
-                if (count * 2 + 1 + stackRow < totalArmorPoint) {
-                    Pair<ItemStack, CustomArmorBar> am1 = armorPoints.get(count * 2 + stackRow);
-                    Pair<ItemStack, CustomArmorBar> am2 = armorPoints.get(count * 2 + 1 + stackRow);
-                    if (am1.getRight() == am2.getRight()) {
-                        am1.getRight().draw(am1.getLeft(), context, xPos, yPos, false, false);
-                    } else {
-                        am2.getRight().draw(am2.getLeft(), context, xPos, yPos, true, true);
-                        am1.getRight().draw(am1.getLeft(), context, xPos, yPos, true, false);
+                    if (index + 1 < totalArmorPoint) {
+                        Pair<ItemStack, CustomArmorBar> am1 = armorPoints.get(index);
+                        Pair<ItemStack, CustomArmorBar> am2 = armorPoints.get(index + 1);
+                        if (am1.getRight() == am2.getRight()) {
+                            am1.getRight().draw(am1.getLeft(), context, xPos, yPos2, false, false);
+                        } else {
+                            am2.getRight().draw(am2.getLeft(), context, xPos, yPos2, true, true);
+                            am1.getRight().draw(am1.getLeft(), context, xPos, yPos2, true, false);
+                        }
                     }
-                }
-                if (count * 2 + 1 + stackRow == totalArmorPoint) {
-                    CustomArmorBar.EMPTY.draw(ItemStack.EMPTY, context, xPos, yPos, false, false);
-                    Pair<ItemStack, CustomArmorBar> am = armorPoints.get(count * 2 + stackRow);
-                    am.getRight().draw(am.getLeft(), context, xPos, yPos, true, false);
-                }
-                if (count * 2 + 1 + stackRow > totalArmorPoint) {
-                    CustomArmorBar.EMPTY.draw(ItemStack.EMPTY, context, xPos, yPos, false, false);
-                }
-            }
-
-            if (armorPoints.size() > 20) {
-                for (int i = 0; i < stackCount; i++) {
-                    CustomArmorBar.DEFAULT.draw(ItemStack.EMPTY, context, screenWidth - 7 - ((stackCount - i)*3), yPos, false, false);
+                    if (index + 1 == totalArmorPoint) {
+                        CustomArmorBar.EMPTY.draw(ItemStack.EMPTY, context, xPos, yPos2, false, false);
+                        Pair<ItemStack, CustomArmorBar> am = armorPoints.get(index);
+                        am.getRight().draw(am.getLeft(), context, xPos, yPos2, true, false);
+                    }
+                    if (index + 1 > totalArmorPoint) {
+                        CustomArmorBar.EMPTY.draw(ItemStack.EMPTY, context, xPos, yPos2, false, false);
+                    }
                 }
             }
         }
@@ -301,24 +298,18 @@ public class ArmorBarRenderer {
             if (totalArmorPoint != 0 && lowDur != 0) {
                 Color lowDurColor = getLowDurabilityColor();
                 if (lowDurColor.getAlpha() != 0) {
-                    int armorPreset = ((totalArmorPoint - 1) % 20) + 1;
-                    int halfArmors = (int) Math.ceil(armorPreset / 2.0) - 1;
-                    for (int count = 0; count <= halfArmors; count++) {
-                        if (lowDur <= 0) break;
-
-                        int xPos = screenWidth + (halfArmors - count) * 8;
-                        Pair<ItemStack, CustomArmorBar> am = armorPoints.get((halfArmors - count) * 2 + stackRow);
-                        if (armorPreset == (halfArmors - count) * 2 + 1) {
-                            if (count == 0) {
-                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos, true, false, lowDurColor);
-                                lowDur--;
-                            }
-                        } else {
+                    for (int stackIndex = 0; stackIndex < stackCount + 1; stackIndex++) {
+                        for (int armorIndex = 0; armorIndex < 10; armorIndex++) {
+                            int xPos = screenWidth + armorIndex * 8;
+                            int yPos2 = yPos - stackIndex * 10;
+                            int index = stackIndex * 20 + armorIndex * 2;
+                            if (lowDur <= 0) break;
+                            Pair<ItemStack, CustomArmorBar> am = armorPoints.get(index);
                             if (lowDur == 1) {
-                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos, true, true, lowDurColor);
+                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos2, true, false, lowDurColor);
                                 lowDur = 0;
                             } else {
-                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos, false, false, lowDurColor);
+                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos2, false, false, lowDurColor);
                                 lowDur -= 2;
                             }
                         }
@@ -333,16 +324,20 @@ public class ArmorBarRenderer {
             var mendingSpeed = 3;
 
             if (mendingTime < (mendingSpeed * 4)) {
-                for (int count = 0; count < 10; count++) {
-                    if (mendingTime % (mendingSpeed * 2) < mendingSpeed) {
-                        int xPos = screenWidth + count * 8;
+                for (int stackIndex = 0; stackIndex < stackCount + 1; stackIndex++) {
+                    for (int armorIndex = 0; armorIndex < 10; armorIndex++) {
+                        int xPos = screenWidth + armorIndex * 8;
+                        int yPos2 = yPos - stackIndex * 10;
+                        int index = stackIndex * 20 + armorIndex * 2;
 
-                        if (armorPoints.size() <= count * 2 + stackRow) {
-                            if (getConfig().getOptions().toggleEmptyBar)
-                                CustomArmorBar.DEFAULT.drawOutLine(ItemStack.EMPTY, context, xPos, yPos, false, false, Color.WHITE);
-                        } else {
-                            Pair<ItemStack, CustomArmorBar> am = armorPoints.get(count * 2 + stackRow);
-                            am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos, false, false, Color.WHITE);
+                        if (mendingTime % (mendingSpeed * 2) < mendingSpeed) {
+                            if (armorPoints.size() <= index) {
+                                if (getConfig().getOptions().toggleEmptyBar)
+                                    CustomArmorBar.DEFAULT.drawOutLine(ItemStack.EMPTY, context, xPos, yPos2, false, false, Color.WHITE);
+                            } else {
+                                Pair<ItemStack, CustomArmorBar> am = armorPoints.get(index);
+                                am.getRight().drawOutLine(am.getLeft(), context, xPos, yPos2, false, false, Color.WHITE);
+                            }
                         }
                     }
                 }
@@ -353,33 +348,38 @@ public class ArmorBarRenderer {
 
         //Armor Enchantments
         if (getConfig().getOptions().toggleEnchants && totalEnchants > 0 && totalArmorPoint > 0) {
-            for (int count = 0; count * 2 + 1 <= totalEnchants; count++) {
-                if (count > 9) break;
+            for (int stackIndex = 0; stackIndex < stackCount + 1; stackIndex++) {
+                for (int armorIndex = 0; armorIndex < 10; armorIndex++) {
+                    int xPos = screenWidth + armorIndex * 8;
+                    int yPos2 = yPos - stackIndex * 10;
+                    int index = stackIndex * 20 + armorIndex * 2;
 
-                var xPos = screenWidth + count * 8;
-                if (count * 2 + 1 < totalEnchants) {
-                    var min = -1;
-                    var max = -1;
-                    for (int pw = 0; pw < 5; pw++) {
-                        if (min == -1 && protectArr[pw] > 1) {
-                            min = pw;
-                            break;
-                        } else if (min == -1 && protectArr[pw] == 1) {
-                            min = pw;
-                        } else if (min != -1 && max == -1 && protectArr[pw] >= 1) max = pw;
+                    if (index + 1 > totalEnchants) break;
+
+                    if (index + 1 < totalEnchants) {
+                        var min = -1;
+                        var max = -1;
+                        for (int pw = 0; pw < 5; pw++) {
+                            if (min == -1 && protectArr[pw] > 1) {
+                                min = pw;
+                                break;
+                            } else if (min == -1 && protectArr[pw] == 1) {
+                                min = pw;
+                            } else if (min != -1 && max == -1 && protectArr[pw] >= 1) max = pw;
+                        }
+                        if (min != -1 && max != -1) {
+                            drawEnchantTexture(context, xPos, yPos2, getProtectColor(protectArr), 2);
+                            protectArr[min] = 0;
+                            drawEnchantTexture(context, xPos, yPos2, getProtectColor(protectArr), 1);
+                            protectArr[max] -= 1;
+                        } else {
+                            drawEnchantTexture(context, xPos, yPos2, getProtectColor(protectArr), 0);
+                            protectArr[min] -= 2;
+                        }
                     }
-                    if (min != -1 && max != -1) {
-                        drawEnchantTexture(context, xPos, yPos, getProtectColor(protectArr), 2);
-                        protectArr[min] = 0;
-                        drawEnchantTexture(context, xPos, yPos, getProtectColor(protectArr), 1);
-                        protectArr[max] -= 1;
-                    } else {
-                        drawEnchantTexture(context, xPos, yPos, getProtectColor(protectArr), 0);
-                        protectArr[min] -= 2;
+                    if (index + 1 == totalEnchants) {
+                        drawEnchantTexture(context, xPos, yPos2, getProtectColor(protectArr), 2);
                     }
-                }
-                if (count * 2 + 1 == totalEnchants) {
-                    drawEnchantTexture(context, xPos, yPos, getProtectColor(protectArr), 2);
                 }
             }
         }
@@ -387,15 +387,20 @@ public class ArmorBarRenderer {
         //Thorns Check
         if (getConfig().getOptions().toggleThorns && thorns.level > 0 && totalArmorPoint > 0) {
             Color thornsColor = getThornColor();
-            for (int count = 0; count < 10; count++) {
-                if (count * 2 + 1 > thorns.level) break;
+            for (int stackIndex = 0; stackIndex < stackCount + 1; stackIndex++) {
+                for (int armorIndex = 0; armorIndex < 10; armorIndex++) {
+                    int xPos = screenWidth + armorIndex * 8;
+                    int yPos2 = yPos - stackIndex * 10;
+                    int index = stackIndex * 20 + armorIndex * 2;
 
-                int xPos = screenWidth + count * 8;
-                if (count * 2 + 1 < thorns.level) {
-                    InGameDrawer.drawTexture(GUI_ARMOR_BAR, context, xPos, yPos, 36, 18, thornsColor, false);
-                }
-                if (count * 2 + 1 == thorns.level) {
-                    InGameDrawer.drawTexture(GUI_ARMOR_BAR, context, xPos, yPos, 27, 18, thornsColor, false);
+                    if (index + 1 > thorns.level) break;
+
+                    if (index + 1 < thorns.level) {
+                        InGameDrawer.drawTexture(GUI_ARMOR_BAR, context, xPos, yPos2, 36, 18, thornsColor, false);
+                    }
+                    if (index + 1 == thorns.level) {
+                        InGameDrawer.drawTexture(GUI_ARMOR_BAR, context, xPos, yPos2, 27, 18, thornsColor, false);
+                    }
                 }
             }
         }
